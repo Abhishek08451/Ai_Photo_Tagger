@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Photo Tagging</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+         body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #5f94ff, #7bcefe);
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #fff;
+            margin-top: 50px;
+            font-size: 3em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        #uploadForm {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #fileInput {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 2px solid #7beffe;
+            border-radius: 5px;
+            background: #fff;
+        }
+        button {
+            background-color: #5fdaff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #7bd0fe;
+        }
+        #taggedPhotos {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .photo-container {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #5fd2ff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+            width: 300px;
+            transition: transform 0.2s;
+        }
+        .photo-container:hover {
+            transform: scale(1.05);
+        }
+        .photo-container p {
+            margin: 0 0 10px;
+            font-weight: bold;
+            color: #5fccff;
+        }
+        .tag-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .tag-list li {
+            background: #625fff;
+            color: #fff;
+            border: 1px solid #7bc7fe;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 5px 0;
+            text-align: center;
+            transition: background 0.3s ease;
+        }
+        .tag-list li:hover {
+            background: #7be2fe;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Photo Tagging</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="photos" multiple> <!-- Allow multiple file selection -->
+        <button type="button" onclick="uploadPhotos()">Upload Photos</button>
+    </form>
+    <div id="taggedPhotos"></div>
+    
+    <script>
+    function uploadPhotos() {
+        console.log("Uploading photos...");
+        var formData = new FormData($('#uploadForm')[0]);
+    
+        $.ajax({
+            url: '/',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(data) {
+                displayTaggedPhotos(data);
+            },
+            error: function(xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+    
+    function displayTaggedPhotos(taggedPhotos) {
+        var container = $('#taggedPhotos');
+        container.empty();
+    
+        var classLabels = {
+            0: 'Airplane',
+            1: 'Automobile',
+            2: 'Bird',
+            3: 'Cat',
+            4: 'Deer',
+            5: 'Dog',
+            6: 'Frog',
+            7: 'Horse',
+            8: 'Ship',
+            9: 'Truck'
+        };
+    
+        taggedPhotos.forEach(function(photo) {
+            var photoElement = $('<div>').addClass('photo-container');
+            photoElement.append($('<p>').text('Photo: ' + photo.photo));
+    
+            var tags = $('<ul>').addClass('tag-list');
+            photo.tags.forEach(function(tag) {
+                var label = classLabels[tag.class] || 'Unknown';
+                tags.append($('<li>').text('Class: ' + label + ', Confidence: ' + tag.confidence));
+            });
+            photoElement.append(tags);
+    
+            container.append(photoElement);
+        });
+    }
+    </script>
+</body>
+</html>
